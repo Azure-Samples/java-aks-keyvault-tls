@@ -2,5 +2,5 @@ apiVersion: v2
 name: openjdk-demo
 description: An OpenJDK demo app to show TLS and CSI support
 type: application
-version: 3.1.0 #chart version
+version: 3.5.0 #chart version
 appVersion: "0.0.1" #your app version (used as an image tag)
