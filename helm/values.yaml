@@ -1,0 +1,29 @@
+replicaCount: 1
+
+nameOverride: "openjdk-demo"
+
+dnsname: openjdk-demo.local
+
+ingressType: "appgw"
+
+frontendCertificateSource: "letsEncrypt" #letsEncrypt|appGw
+
+appgw:
+  rootCertificateName: "openjdk-demo" #AppGw is fussy about the CN matching the incoming hostheader, otherwise 502's ensue
+  frontendCertificateName: "openjdk-demo-fe"
+  usePrivateIp: false
+
+csisecrets:
+  vaultname: ""
+  tenantId: ""
+  clientId: ""
+
+image:
+  repository: gordonbmsft/openjdk-demo
+  pullPolicy: Always
+  tag: "" #image tag should be set in Chart.yaml - but where it's a strange tag, just override here
+
+letsEncrypt:
+  issuer: "letsencrypt-staging"
+  challengeType: "http01"
+  secretname: "tls-secret"

@@ -1,0 +1,46 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "app.name" . }}-ingress
+  labels:
+    app: {{ include "app.name" . }}
+  annotations:
+    {{if eq .Values.ingressType "appgw"}}
+    kubernetes.io/ingress.class: azure/application-gateway
+    appgw.ingress.kubernetes.io/use-private-ip: "{{ .Values.appgw.usePrivateIp }}"
+    appgw.ingress.kubernetes.io/ssl-redirect: "true"
+    appgw.ingress.kubernetes.io/backend-protocol: "https"
+    appgw.ingress.kubernetes.io/backend-hostname: "{{ .Values.nameOverride }}" #Must match CN in backend cert
+    appgw.ingress.kubernetes.io/appgw-trusted-root-certificate: {{ .Values.appgw.rootCertificateName }}
+    {{if eq .Values.frontendCertificateSource "appGw"}}
+    appgw.ingress.kubernetes.io/appgw-ssl-certificate: {{ .Values.appgw.frontendCertificateName }}
+    {{ end }}
+    {{ else }}
+    ingress.kubernetes.io/force-ssl-redirect: "true"
+    {{ end }}
+    {{if eq .Values.frontendCertificateSource "letsEncrypt"}}
+    cert-manager.io/cluster-issuer: {{ .Values.letsEncrypt.issuer }}
+    kubernetes.io/tls-acme: "true"
+    cert-manager.io/acme-challenge-type: {{ .Values.letsEncrypt.challengeType }}
+    {{ end }}
+spec:
+  {{if ne .Values.ingressType "appgw"}}
+  ingressClassName: {{ .Values.ingressType }}
+  {{ end }}
+  tls:
+    - hosts:
+        - {{ .Values.dnsname }}
+      {{if eq .Values.frontendCertificateSource "letsEncrypt"}}
+      secretName: {{ .Values.letsEncrypt.secretname }}
+      {{ end }}
+  rules:
+    - host: {{ .Values.dnsname }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "app.name" . }}-service
+                port:
+                  name: https

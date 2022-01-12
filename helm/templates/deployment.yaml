@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "app.name" . }}
+  labels:
+    app: {{ include "app.name" . }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ include "app.name" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "app.name" . }}
+    spec:
+      volumes:
+        - name: {{ include "app.name" . }}-cert-mount
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: "azure-{{ include "app.name" . }}-{{ .Values.csisecrets.vaultname }}"
+      containers:
+        - name: {{ include "app.name" . }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          env:
+            - name: SSL_ENABLED
+              value: "true"
+            - name: SSL_STORE
+              value: "/cert/identity.p12"
+            - name: KEY_STORE_PASSWD
+              value: ""
+          volumeMounts:
+            - name: {{ include "app.name" . }}-cert-mount
+              mountPath: "/cert"
+              readOnly: true
+          ports:
+            - containerPort: 8080
+          imagePullPolicy: Always
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "500m"
+            limits:
+              memory: "512Mi"
+              cpu: "1"
