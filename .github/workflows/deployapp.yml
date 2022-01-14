@@ -57,6 +57,10 @@ on:
         default: ""
         required: false
         type: string
+      VERIFYURLTIMEOUTMINS:
+        default: 3
+        required: false
+        type: number
       FORCEHELMCLEANINSTALL:
         description: 'If App is already installed, remove explictly before install'
         type: boolean
@@ -255,6 +259,7 @@ jobs:
           fi
 
       - name: Verify Java App is reachable
+        timeout-minutes: ${{ inputs.VERIFYURLTIMEOUTMINS }} 
         run: |
           echo "curl $URLTOHIT [$(date +"%T")]"
           curlcommand="curl --connect-timeout 2 --retry 25 --retry-delay 20 --no-keepalive --no-tcp-nodelay -X GET --insecure --write-out %{http_code} --silent --fail --output /dev/null $APPURL -v --trace-time"
