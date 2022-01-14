@@ -57,6 +57,11 @@ on:
         default: ""
         required: false
         type: string
+      FORCEHELMCLEANINSTALL:
+        description: 'If App is already installed, remove explictly before install'
+        type: boolean
+        default: false
+        required: false
       UNINSTALLAFTERVERIFY:
         description: 'Uninstall app after tests  [yes|no]'
         type: boolean
@@ -70,7 +75,7 @@ jobs:
   App_Create:
     runs-on: ubuntu-latest
     concurrency: "Ag-${{ inputs.AGNAME}}" #AppGateway doesn't like concurrent updates
-    env:
+    env: #We create the environment variables here instead of at the step level for clarity and to ensure consistency with the WizardUI
       APPNAME: "${{ inputs.APPNAME }}"
       AKVNAME: "${{ inputs.AKVNAME }}"
       CERTNAME: "${{ inputs.APPNAME }}"
@@ -83,9 +88,10 @@ jobs:
       DNSRECORDNAME: "${{ inputs.DNSRECORDNAME }}"
       NAMESP: "default"
       APPURL: "https://${{ inputs.APPNAME }}.${{ inputs.DNSDOMAIN }}"
+      kubeloginversion: 'v0.0.10'
 
     steps:
-      #- uses: actions/checkout@v2  #Checks out the files from the Calling workflows repository
+      #- uses: actions/checkout@v2  #Checks out the files from the Calling workflows repository, cannot use it. We need to be more specific in our repo checkout
 
       - uses: actions/checkout@v2
         name: Checkout repo for dependant scripts/
@@ -117,21 +123,7 @@ jobs:
 
       - name: Create FrontEnd Cert references in AppGw
         if: inputs.FRONTENDCERTTYPE == 'appgw-selfsigned'
-        env:
-          CERTNAMES: '["${{ inputs.APPNAME }}-fe"]'
-        run: |
-          AGNAME='${{ inputs.AGNAME}}'
-          RG='${{ inputs.RG }}'
-          KVNAME='${{ inputs.AKVNAME}}'
-
-          echo $CERTNAMES | jq -r '.[]' | while read cert; do
-             echo "getting id for $cert";
-             versionedSecretId=$(az keyvault certificate show -n $cert --vault-name $KVNAME --query "sid" -o tsv);
-             unversionedSecretId=$(echo $versionedSecretId | cut -d'/' -f-5) # remove the version from the url;
-             echo $unversionedSecretId;
-             fecertcmd="az network application-gateway ssl-cert create -n $cert --gateway-name $AGNAME -g $RG --key-vault-secret-id $unversionedSecretId";
-             $fecertcmd || $fecertcmd --verbose
-          done
+        run: sh scripts/agw-create-ssl-cert.sh
 
       - name: Confirm certificates registered in AppGw
         run: |
@@ -139,21 +131,13 @@ jobs:
           az network application-gateway root-cert list -g $RG --gateway-name $AGNAME --query "[].name"
 
       - name: AKS Connect
-        run: az aks get-credentials -n $AKSNAME -g $RG --overwrite-existing
-
-      - name: Kubelogin
-        env:
-          kubeloginversion: 'v0.0.10'
-        run: |
-          wget https://github.com/Azure/kubelogin/releases/download/${{ env.kubeloginversion }}/kubelogin-linux-amd64.zip
-          unzip kubelogin-linux-amd64.zip
-          sudo mv bin/linux_amd64/kubelogin /usr/bin
-          kubelogin convert-kubeconfig -l azurecli
+        run: sh scripts/aks-connect.sh
 
       - name: Observe Existing DNSConfig
         run: az network dns record-set list -g $DNSRG -z $DNSDOMAIN --query "[?name=='$DNSRECORDNAME'][{type:type,fqdn:fqdn,aRecords:aRecords,txtRecords:txtRecords}]"
 
       - name: Check if App Helm Chart already installed
+        if: inputs.FORCEHELMCLEANINSTALL == true
         run: |
           APPINSTALLED=$(helm list --filter ^$APPNAME$ --short)
           if [ -z "$APPINSTALLED" ]
@@ -169,11 +153,11 @@ jobs:
       - name: Install Cert Manager
         if: startsWith(inputs.FRONTENDCERTTYPE, 'certmanager' )
         env:
-          MANIFESTTESTURL: "https://github.com/jetstack/cert-manager/releases/download/${{ inputs.CERTMANAGERVERSION }}/cert-manager.yaml"
+          CERTMANAGERURI: "https://github.com/jetstack/cert-manager/releases/download/${{ inputs.CERTMANAGERVERSION }}/cert-manager.yaml"
           EMAILAD: "${{ inputs.CERTMANAGEREMAIL }}"
         run: |
           echo "Installing Cert Manager ${{ inputs.CERTMANAGERVERSION }}"
-          kubectl apply -f $MANIFESTTESTURL
+          kubectl apply -f $CERTMANAGERURI
           sleep 1m
 
           echo "Installing Cert Manager ClusterIssuer"
@@ -191,45 +175,14 @@ jobs:
 
           kubectl describe clusterissuer $LEISSUER
 
-      - name: Add a azure-config secret for use with externaldns
-        run: |
-          KubeletId=$(az aks show -n $AKSNAME -g  $RG --query "identityProfile.kubeletidentity.clientId" -o tsv)
-          TenantId=$(az account show --query tenantId -o tsv)
-          SubscriptionId=$(az account show --query id -o tsv)
-
-          JSONSECRETPATH="azure.json"
-          cat<<EOF>$JSONSECRETPATH
-          {
-            "userAssignedIdentityID": "$KubeletId",
-            "tenantId": "$TenantId",
-            "useManagedIdentityExtension": true,
-            "subscriptionId": "$SubscriptionId",
-            "resourceGroup": "$DNSRG"
-          }
-          EOF
-
-          kubectl create secret generic azure-config-file --dry-run=client -o yaml --from-file=azure.json | kubectl apply -f -
-
-      - name: Add external dns config
-        run: |
-          echo "Installing ExternalDns for $DNSDOMAIN"
-          helm upgrade --install externaldns ${{ inputs.HELMEXTERNALDNSURI }} --set externaldns.domainfilter="$DNSDOMAIN"
+      - name: Create azure-config secret and install externaldns
+        run: sh scripts/externaldns-create-k8s-secret.sh
 
       - name: Install the Java sample app
-        env:
-          DOMAINSUFFIX: "${{ inputs.DNSDOMAIN }}"
-          FRONTENDCERTNAME: "${{ inputs.APPNAME }}-fe"
-
         run: |
-          AKSNAME='${{ inputs.AKSNAME}}'
-          RG='${{ inputs.RG }}'
-          KVNAME='${{ inputs.AKVNAME}}'
-          KVNAMELOWER=${KVNAME,,}
-          APPNAME='${{ inputs.APPNAME }}'
+          KVNAMELOWER=${AKVNAME,,}
           KVTENANT=$(az account show --query tenantId -o tsv)
-          AGNAME='${{ inputs.AGNAME}}'
-          AKSNAME='${{ inputs.AKSNAME}}'
-          DNSNAME=${APPNAME}.${DOMAINSUFFIX}
+          DNSNAME=${APPNAME}.${DNSDOMAIN}
 
           case "${{ inputs.FRONTENDCERTTYPE }}" in
              "appgw-selfsigned") CERTSOURCE="appGw"; LEISSUER="" ;;
