@@ -38,11 +38,11 @@ on:
         #- certmanager-production
         #- appgw-selfsigned
       HELMCERTMANAGERISSUERURI:
-        default: "/helm/Az-CertManagerIssuer-0.3.0.tgz"
+        default: "helm/Az-CertManagerIssuer-0.3.0.tgz"
         required: false
         type: string
       HELMEXTERNALDNSURI:
-        default: "/helm/externaldns-0.2.0.tgz"
+        default: "helm/externaldns-0.2.0.tgz"
         required: false
         type: string
       HELMAPPURI:
@@ -70,9 +70,10 @@ jobs:
       #- uses: actions/checkout@v2  #Checks out the files from the Calling workflows repository
 
       - uses: actions/checkout@v2
+        name: Checkout repo for dependant scripts/
         with:
           repository: azure-samples/java-aks-keyvault-tls
-          ref: 'gb-workflow' #TODO:change this to a specific release tag
+          ref: 'gb-workflow' #TODO:change this to a specific release tag before PR
         
       - name: Job parameter inspection
         run: |
