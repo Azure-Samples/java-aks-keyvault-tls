@@ -72,8 +72,8 @@ jobs:
       - uses: actions/checkout@v2
         with:
           repository: azure-samples/java-aks-keyvault-tls
-          ref: 'gb-workflow'
-
+          ref: 'gb-workflow' #TODO:change this to a specific release tag
+        
       - name: Job parameter inspection
         run: |
           echo "RG is ${{ inputs.RG }}"
@@ -92,10 +92,8 @@ jobs:
       - name: Create self signed certs in Key Vault
         env:
           APPNAME: ${{ inputs.APPNAME }}
-        run: | 
-          ls
-          ls scripts/
-          sh scripts/akv-create-certs.sh
+          AKVNAME: ${{ inputs.AKVNAME }}
+        run: sh scripts/akv-create-certs.sh
 
       - name: Create Root Cert references in AppGw
         env:
