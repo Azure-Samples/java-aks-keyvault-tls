@@ -87,25 +87,27 @@ jobs:
       - name: Create self signed certs in Key Vault
         env:
           APPNAME: ${{ inputs.APPNAME }}
-        run: sh scripts/akv-create-certs.sh
+        run: | 
+          ls
+          ls scripts/
+          sh scripts/akv-create-certs.sh
 
       - name: Create Root Cert references in AppGw
         env:
-          CERTNAMES: '["${{ inputs.APPNAME }}"]'
+          CERTNAME: ${{ inputs.APPNAME }}
+          RG: "${{ inputs.RG }}"
+          KVNAME: "${{ inputs.AKVNAME }}"
+          AGNAME: "${{ inputs.AGNAME }}"
         id: AppGwRootCert
         run: |
-          AGNAME='${{ inputs.AGNAME}}'
-          RG='${{ inputs.RG }}'
-          KVNAME='${{ inputs.AKVNAME}}'
+          echo "getting akv secretid for $CERTNAME";
+          versionedSecretId=$(az keyvault certificate show -n $CERTNAME --vault-name $KVNAME --query "sid" -o tsv);
+          unversionedSecretId=$(echo $versionedSecretId | cut -d'/' -f-5) # remove the version from the url;
+          echo $unversionedSecretId;
 
-          echo $CERTNAMES | jq -r '.[]' | while read cert; do
-             echo "getting id for $cert";
-             versionedSecretId=$(az keyvault certificate show -n $cert --vault-name $KVNAME --query "sid" -o tsv);
-             unversionedSecretId=$(echo $versionedSecretId | cut -d'/' -f-5) # remove the version from the url;
-             echo $unversionedSecretId;
-             rootcertcmd="az network application-gateway root-cert create --gateway-name $AGNAME  -g $RG -n $cert --keyvault-secret $unversionedSecretId";
-             $rootcertcmd || $rootcertcmd --verbose
-          done
+          echo "creating root certificate reference in application gateway";
+          rootcertcmd="az network application-gateway root-cert create --gateway-name $AGNAME  -g $RG -n $CERTNAME --keyvault-secret $unversionedSecretId";
+          $rootcertcmd || $rootcertcmd --verbose
 
       - name: Create FrontEnd Cert references in AppGw
         if: inputs.FRONTENDCERTTYPE == 'appgw-selfsigned'
