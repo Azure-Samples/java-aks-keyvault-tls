@@ -1,3 +1,4 @@
+#!/bin/bash
 echo "Installing Cert Manager from $CERTMANAGERURI"
 kubectl apply -f $CERTMANAGERURI
 sleep 1m

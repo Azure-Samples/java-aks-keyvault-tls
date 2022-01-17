@@ -1,3 +1,4 @@
+#!/bin/bash
 echo "Getting credentials for $AKSNAME in $RG"
 az aks get-credentials -n $AKSNAME -g $RG --overwrite-existing
 

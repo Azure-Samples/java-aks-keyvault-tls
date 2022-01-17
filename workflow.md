@@ -29,4 +29,4 @@ jobs:
       AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
 ```
 
-You need to provide the Azure Credentials in order for the appropriate Azure resources to be configured. However the way GitHub deals with secrets is handled securely, secrets and parameters are not sent to this repo, simply the reusable workflow and repo files are download to your GitHub runner.
+You need to provide the Azure Credentials in order for the appropriate Azure resources to be configured. However the way GitHub deals with secrets is handled securely, secrets and parameters are not sent to this repo, simply the reusable workflow file is downloaded to your GitHub runner.
