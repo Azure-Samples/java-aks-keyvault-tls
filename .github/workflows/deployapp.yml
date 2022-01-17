@@ -260,13 +260,15 @@ jobs:
       - name: Verify Java App is reachable
         timeout-minutes: 5
         run: |
-          echo "curl $URLTOHIT [$(date +"%T")]"
+          sleep 30s
+          echo "curl $APPURL [$(date +"%T")]"
           curlcommand="curl --connect-timeout 2 --retry 25 --retry-delay 20 --no-keepalive --no-tcp-nodelay -X GET --insecure --write-out %{http_code} --silent --fail --output /dev/null $APPURL -v --trace-time"
+          echo "Running curl command $curlcommand with retry"
           respcode=$($curlcommand || sleep 1m; $curlcommand)
 
           echo $respcode
 
-          curl --insecure $URLTOHIT
+          curl --insecure $APPURL
 
       - name: Verify Frontend Certificate
         run: |
