@@ -17,7 +17,7 @@ The following instructions will walk you though
 
 ### Using the GitHub reusable workflow
 
-As an alternative to the manual instructions detailed in this repo, you can call an existing workflow to install the app on an existing cluster. See [here](workflow.md) for instructions on how to do that.
+As an alternative to the manual instructions detailed in this repo, you can call a GitHub workflow in this repo to install the app on an existing cluster. See [here](workflow.md) for instructions on how to do that.
 
 ## Prerequisites
 
