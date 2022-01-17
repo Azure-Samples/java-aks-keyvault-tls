@@ -173,6 +173,8 @@ jobs:
           kubectl describe clusterissuer $LEISSUER
 
       - name: Create azure-config secret and install externaldns
+        env:
+          EXTERNALDNSURI: "${{ inputs.HELMEXTERNALDNSURI }}"
         run: sh scripts/externaldns-config-install.sh
 
       - name: Set app frontend certificate parameters
