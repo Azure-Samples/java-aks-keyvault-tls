@@ -173,7 +173,7 @@ jobs:
           kubectl describe clusterissuer $LEISSUER
 
       - name: Create azure-config secret and install externaldns
-        run: sh scripts/externaldns-create-k8s-secret.sh
+        run: sh scripts/externaldns-config-install.sh
 
       - name: Set app frontend certificate parameters
         id: frontendCert
