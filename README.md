@@ -17,9 +17,9 @@ The following instructions will walk you though
 
 ### Using the GitHub reusable workflow
 
-As an alternative to the manual instructions detailed in this repo, you can call an existing workflow to install the app on an existing cluster. See [here](workflow.md) for instructions on how to do that.
+As an alternative to the manual instructions detailed in this repo, you can call a GitHub workflow in this repo to install the app on an existing cluster. See [here](workflow.md) for instructions on how to do that.
 
-### Prerequisites
+## Prerequisites
 
 Use the [AKS helper](https://azure.github.io/Aks-Construction) to provision your cluster, and configure the helper as follows:
 
@@ -39,9 +39,9 @@ Now, to configure the TLS Ingress, go into the __Addon Details__ tab
 
 Now, under the __Deploy__ tab, execute the commands to provision your complete environment. __NOTE__: Once complete, please remember to run the script on the __Post Configuration__ tab to complete the deployment.
 
-### Installation
+## Installation
 
-## Upload the Cert to KeyVault, and allow access from Application Gateway and your Java app
+### Upload the Cert to KeyVault, and allow access from Application Gateway and your Java app
 
 Set all required environment variables for the following commands:
 
@@ -55,7 +55,7 @@ export DNSZONE=<Your dnsZone name>
 export KVTENANT=$(az account show --query tenantId -o tsv)
 ```
 
-## Generate self signed Certificate
+### Generate self signed Certificate
 
 >__NOTE__: The CN you provide the certificate needs to match the Ingress annotation : "appgw.ingress.kubernetes.io/backend-hostname" currently ___"openjdk-demo"___
 
