@@ -6,4 +6,4 @@ echo $unversionedSecretId;
 
 echo "creating root certificate reference in application gateway";
 rootcertcmd="az network application-gateway root-cert create --gateway-name $AGNAME  -g $RG -n $CERTNAME --keyvault-secret $unversionedSecretId";
-$rootcertcmd || $rootcertcmd --verbose
+$rootcertcmd

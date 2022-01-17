@@ -6,4 +6,4 @@ echo $unversionedSecretId;
 
 echo "Creating SSL Cert ${CERTNAME}-fe in application gateway"
 fecertcmd="az network application-gateway ssl-cert create -n ${CERTNAME}-fe --gateway-name $AGNAME -g $RG --key-vault-secret-id $unversionedSecretId";
-$fecertcmd || $fecertcmd --verbose
+$fecertcmd
