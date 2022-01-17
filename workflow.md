@@ -1,9 +1,10 @@
 # Callable Workflow
 
-This repo contains a workflow to install the sample app, along with the accompanying certificate and dns configuration.
-It's written as a GitHub Reusable Workflow, which means that it is invoked by another GitHub workflow.
+This repo contains a [workflow](.github\workflows\deployapp.yml) to install the sample app, along with all the accompanying configuration.
+It's written as a [GitHub Reusable Workflow](https://docs.github.com/en/actions/using-workflows/reusing-workflows), which means that it is invoked by another GitHub workflow.
 
-You can call the reusable workflow in this repository directly, providing the correct parameters. Here's a sample of how a calling workflow looks;
+You can call the reusable workflow in this repository directly from your own GitHub repository.
+You will need to providing the correct parameters to allow the workflow to run. Here's a sample;
 
 ```yaml
 name: Sample workflow for calling JavaApp reusable workflow
