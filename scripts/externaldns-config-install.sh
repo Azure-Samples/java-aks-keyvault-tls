@@ -16,4 +16,4 @@ EOF
 kubectl create secret generic azure-config-file --dry-run=client -o yaml --from-file=azure.json | kubectl apply -f -
 
 echo "Installing ExternalDns for $DNSDOMAIN"
-helm upgrade --install externaldns ${{ inputs.HELMEXTERNALDNSURI }} --set externaldns.domainfilter="$DNSDOMAIN"
+helm upgrade --install externaldns $EXTERNALDNSURI --set externaldns.domainfilter="$DNSDOMAIN"
