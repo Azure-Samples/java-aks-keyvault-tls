@@ -62,7 +62,7 @@ on:
         required: false
         type: number
       FORCEHELMCLEANINSTALL:
-        description: 'If App is already installed, remove explictly before install'
+        description: 'If App is already installed, remove explicitly before install'
         type: boolean
         default: false
         required: false
@@ -102,7 +102,7 @@ jobs:
         with:
           repository: azure-samples/java-aks-keyvault-tls
           ref: 'gb-workflow' #TODO:change this to a specific release tag before PR
-        
+
       - name: Job parameter inspection
         run: |
           echo "RG is ${{ inputs.RG }}"
@@ -140,7 +140,7 @@ jobs:
       - name: Observe Existing DNSConfig
         run: az network dns record-set list -g $DNSRG -z $DNSDOMAIN --query "[?name=='$DNSRECORDNAME'][{type:type,fqdn:fqdn,aRecords:aRecords,txtRecords:txtRecords}]"
 
-      - name: Check if App Helm Chart already installed
+      - name: Force helm uninstall of existing application
         if: inputs.FORCEHELMCLEANINSTALL == true
         run: |
           APPINSTALLED=$(helm list --filter ^$APPNAME$ --short)
@@ -158,16 +158,9 @@ jobs:
         if: startsWith(inputs.FRONTENDCERTTYPE, 'certmanager' )
         env:
           CERTMANAGERURI: "https://github.com/jetstack/cert-manager/releases/download/${{ inputs.CERTMANAGERVERSION }}/cert-manager.yaml"
+          CERTMANAGERISSUERURI: "${{ inputs.HELMCERTMANAGERISSUERURI }}"
           EMAILAD: "${{ inputs.CERTMANAGEREMAIL }}"
-        run: |
-          echo "Installing Cert Manager ${{ inputs.CERTMANAGERVERSION }}"
-          kubectl apply -f $CERTMANAGERURI
-          sleep 1m
-
-          echo "Installing Cert Manager ClusterIssuer"
-          echo "Email Address for Lets Encrypt: $EMAILAD"
-          helm upgrade --install smokecertissuer ${{ inputs.HELMCERTMANAGERISSUERURI }} --set email=$EMAILAD
-          sleep 1m
+        run: sh scripts\certmanager-install.sh
 
       - name: Verify Cert Manager ClusterIssuer
         if: startsWith(inputs.FRONTENDCERTTYPE, 'certmanager' )
@@ -182,24 +175,25 @@ jobs:
       - name: Create azure-config secret and install externaldns
         run: sh scripts/externaldns-create-k8s-secret.sh
 
-      - name: Install the Java sample app
+      - name: Set app frontend certificate parameters
+        id: frontendCert
         run: |
-          KVNAMELOWER=${AKVNAME,,}
-          KVTENANT=$(az account show --query tenantId -o tsv)
-          DNSNAME=${APPNAME}.${DNSDOMAIN}
 
           case "${{ inputs.FRONTENDCERTTYPE }}" in
-             "appgw-selfsigned") CERTSOURCE="appGw"; LEISSUER="" ;;
-             "certmanager-staging") CERTSOURCE="letsEncrypt"; LEISSUER="letsencrypt-staging" ;;
-             "certmanager-production") CERTSOURCE="letsEncrypt" LEISSUER="letsencrypt-production" ;;
+              "appgw-selfsigned") CERTSOURCE="appGw"; LEISSUER="" ;;
+              "certmanager-staging") CERTSOURCE="letsEncrypt"; LEISSUER="letsencrypt-staging" ;;
+              "certmanager-production") CERTSOURCE="letsEncrypt" LEISSUER="letsencrypt-production" ;;
           esac
 
-          echo 'Get the identity created from the KeyVaultSecret Addon'
-          export CSISECRET_CLIENTID=$(az aks show -g $RG --name $AKSNAME --query addonProfiles.azureKeyvaultSecretsProvider.identity.clientId -o tsv)
-          echo $CSISECRET_CLIENTID
+          echo '::set-output name=CERTSOURCE::$CERTSOURCE'
+          echo '::set-output name=LEISSUER::$LEISSUER'
 
-          helm upgrade --install $APPNAME ${{ inputs.HELMAPPURI }} --set nameOverride="${APPNAME}",frontendCertificateSource="${CERTSOURCE}",csisecrets.vaultname="${KVNAMELOWER}",csisecrets.tenantId="${KVTENANT}",csisecrets.clientId="${CSISECRET_CLIENTID}",dnsname="${DNSNAME}",appgw.frontendCertificateName="${APPNAME}-fe",appgw.rootCertificateName="${APPNAME}",letsEncrypt.issuer="${LEISSUER}",letsEncrypt.secretname="${APPNAME}-tls" --dry-run
-          helm upgrade --install $APPNAME ${{ inputs.HELMAPPURI }} --set nameOverride="${APPNAME}",frontendCertificateSource="${CERTSOURCE}",csisecrets.vaultname="${KVNAMELOWER}",csisecrets.tenantId="${KVTENANT}",csisecrets.clientId="${CSISECRET_CLIENTID}",dnsname="${DNSNAME}",appgw.frontendCertificateName="${APPNAME}-fe",appgw.rootCertificateName="${APPNAME}",letsEncrypt.issuer="${LEISSUER},letsEncrypt.secretname="${APPNAME}-tls""
+      - name: Install the Java sample app
+        env:
+          APPURI: "${{ inputs.HELMAPPURI }}"
+          CERTSOURCE: "${{ steps.frontendCert.outputs.CERTSOURCE }}"
+          LEISSUER: "${{ steps.frontendCert.outputs.LEISSUER }}"
+        run: sh scripts\jdkdemoapp-install.sh
 
       - name: Wait for External DNS config
         run: |
