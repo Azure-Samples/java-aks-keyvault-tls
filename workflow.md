@@ -24,6 +24,7 @@ jobs:
       AGNAME: agw-Byo
       APPNAME: openjdk-demo
       FRONTENDCERTTYPE: certmanager-staging
+      CERTMANAGEREMAIL: gdogg@microsoft.com
     secrets:
       AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
 ```
