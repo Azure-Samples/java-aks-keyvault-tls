@@ -17,17 +17,18 @@ jobs:
     uses: azure-samples/java-aks-keyvault-tls/.github/workflows/deployapp.yml@gb-workflow
     with:
       RG: yourResourceGroup
-      AKSNAME: aks-Byo
-      DNSDOMAIN: azdemo.co.uk
-      DNSRG: domainssl
+      AKSNAME: yourAksClusterName
+      DNSDOMAIN: yourazuremanageddnsdomain.something.something
+      DNSRG: yourazuredomain
       DNSRECORDNAME: openjdk-demo
-      AKVNAME: kv-Byo
-      AGNAME: agw-Byo
+      AKVNAME: yourAzureKeyVaultName
+      AGNAME: yourAppGatewayName
       APPNAME: openjdk-demo
       FRONTENDCERTTYPE: certmanager-staging
-      CERTMANAGEREMAIL: gdogg@microsoft.com
+      CERTMANAGEREMAIL: yourworkingemail@address.something
     secrets:
       AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
 ```
 
-You need to provide the Azure Credentials in order for the appropriate Azure resources to be configured. However the way GitHub deals with secrets is handled securely, secrets and parameters are not sent to this repo, simply the reusable workflow file is downloaded to your GitHub runner.
+You need to provide Azure Credentials in order for the appropriate Azure resources to be configured. The format of these secrets is as explained [here](https://github.com/Azure/login#configure-a-service-principal-with-a-secret).
+Although it may appear you are passing secrets, the way GitHub deals with secrets is handled securely. Secrets and parameters are not sent to this repo, simply the reusable workflow file is downloaded to your GitHub runner where the activity takes place.
