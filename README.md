@@ -4,7 +4,7 @@ This repo demostrates deploying an example "Hello World" Java Spring Boot web ap
 
 ## Features
 
-This example uses the Azure Kubernetes managed WAF ingress __Applicaiton Gateway__, and the [CSI Secret Store Driver](https://docs.microsoft.com/azure/aks/csi-secrets-store-driver) addon, to store the certificates in [Azure KeyVault](https://azure.microsoft.com/services/key-vault/). 
+This example uses the Azure Kubernetes managed WAF ingress __Applicaiton Gateway__, and the [CSI Secret Store Driver](https://docs.microsoft.com/azure/aks/csi-secrets-store-driver) addon, to store the certificates in [Azure KeyVault](https://azure.microsoft.com/services/key-vault/).
 
 ## Getting Started
 
@@ -15,6 +15,9 @@ The following instructions will walk you though
 3. Compile and running the App locally
 4. Deploying the app to AKS
 
+### Using the GitHub reusable workflow
+
+As an alternative to the manual instructions detailed in this repo, you can call an existing workflow to install the app on an existing cluster. See [here](workflow.md) for instructions on how to do that.
 
 ### Prerequisites
 
@@ -32,7 +35,7 @@ Now, to configure the TLS Ingress, go into the __Addon Details__ tab
   * __Automatically Issue Certificates for HTTPS using cert-manager__
 
 
-  __NOTE:__ In the section __CSI Secrets : Store Kubernetes Secrets in Azure Keyvault, using AKS Managed Identity__,  ensure the following option is selected: __Yes, provision a new Azure KeyVault & enable Secrets Store CSI Driver__.  Also, __Enable KeyVault Integration for TLS Certificates__ is selected, this will integrate Application Gateway access to KeyVault,  and 
+  __NOTE:__ In the section __CSI Secrets : Store Kubernetes Secrets in Azure Keyvault, using AKS Managed Identity__,  ensure the following option is selected: __Yes, provision a new Azure KeyVault & enable Secrets Store CSI Driver__.  Also, __Enable KeyVault Integration for TLS Certificates__ is selected, this will integrate Application Gateway access to KeyVault,  and
 
 
 Now, under the __Deploy__ tab, execute the commands to provision your complete environment. __NOTE__: Once complete, please relember to run the script on the __Post Configuration__ tab to complete the deployment.
@@ -57,7 +60,7 @@ export KVTENANT=$(az account show --query tenantId -o tsv)
 >__NOTE__: The CN you provide the certificate needs to match the Ingress annotation : "appgw.ingress.kubernetes.io/backend-hostname" currently ___"openjdk-demoe"___
 
 ```
-export COMMON_NAME=openjdk-demo 
+export COMMON_NAME=openjdk-demo
 az keyvault certificate create --vault-name $KVNAME -n $COMMON_NAME -p "$(az keyvault certificate get-default-policy | sed -e s/CN=CLIGetDefaultPolicy/CN=${COMMON_NAME}/g )"
 ```
 
@@ -81,7 +84,7 @@ spec:
     useVMManagedIdentity: \"true\"
     userAssignedIdentityID: \"${CSISECRET_CLIENTID}\"
     keyvaultName: \"${KVNAME}\"          # the name of the KeyVault
-    cloudName: \"\"                   # [OPTIONAL for Azure] if not provided, azure environment will default to AzurePublicCloud 
+    cloudName: \"\"                   # [OPTIONAL for Azure] if not provided, azure environment will default to AzurePublicCloud
     objects:  |
       array:
         - |
@@ -139,9 +142,9 @@ docker push ${ACRNAME}.azurecr.io/openjdk-demo:0.0.1
 ```
 # In using Private Ingress, set PRIVATEIP to "true", otherwise "false"
 export PRIVATEIP=false
-export CHALLENGE_TYPE=$( [[ $PRIVATEIP == "true" ]] && echo "dns01" || echo "http01" ) 
+export CHALLENGE_TYPE=$( [[ $PRIVATEIP == "true" ]] && echo "dns01" || echo "http01" )
 sed -e "s|{{ACRNAME}}|${ACRNAME}|g" -e "s|{{DNSZONE}}|${DNSZONE}|g" -e "s|{{KVNAME}}|${KVNAME}|g" -e "s|{{PRIVATEIP}}|${PRIVATEIP}|g"  -e "s|{{CHALLENGE_TYPE}}|${CHALLENGE_TYPE}|g" ./deployment-csi.yml | kubectl apply -f -
-```  
+```
 
 Check your POD status is successfullly running
 ```
@@ -158,11 +161,11 @@ After 3-4 minutes (while the dns and certificates are generated), your new webap
 Generate self signed PKCS12 backend cert, for local testing only
 
 ```
-# Create a private key and public certificate 
-openssl req -newkey rsa:2048 -x509 -keyout cakey.pem -out cacert.pem -days 3650 
+# Create a private key and public certificate
+openssl req -newkey rsa:2048 -x509 -keyout cakey.pem -out cacert.pem -days 3650
 
 # Create a JKS keystore
-openssl pkcs12 -export -in cacert.pem -inkey cakey.pem -out identity.pfx 
+openssl pkcs12 -export -in cacert.pem -inkey cakey.pem -out identity.pfx
 
 # Record your key store passwd for the following commands:
 export KEY_STORE_PASSWD=<your pfx keystore password>
