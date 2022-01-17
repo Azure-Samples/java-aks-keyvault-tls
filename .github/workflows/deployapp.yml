@@ -187,8 +187,11 @@ jobs:
               "certmanager-production") CERTSOURCE="letsEncrypt" LEISSUER="letsencrypt-production" ;;
           esac
 
-          echo '::set-output name=CERTSOURCE::$CERTSOURCE'
-          echo '::set-output name=LEISSUER::$LEISSUER'
+          echo "Using Certificate source $CERTSOURCE"
+          echo '::set-output name=CERTSOURCE::$(echo $CERTSOURCE)'
+          
+          echo "Using Lets Encrypt Issuer $LEISSUER"
+          echo '::set-output name=LEISSUER::$(echo $LEISSUER)'
 
       - name: Install the Java sample app
         env:
