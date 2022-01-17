@@ -3,6 +3,8 @@
 This repo contains a [workflow](.github\workflows\deployapp.yml) to install the sample app, along with all the accompanying configuration.
 It's written as a [GitHub Reusable Workflow](https://docs.github.com/en/actions/using-workflows/reusing-workflows), which means that it is invoked by another GitHub workflow.
 
+The workflow is written to run on a hosted GitHub agent and leverage DockerHub for container image storage. If your environment does not allow hosted GitHub agents from communicating with you AKS endpoint, or if you have firewall controls or policies that prevent container images coming from DockerHub then you should follow the instructions in the [README.md](readme.md) where you can build the container and host in a private Azure Container Registry.
+
 You can call the reusable workflow in this repository directly from your own GitHub repository.
 You will need to providing the correct parameters to allow the workflow to run. Here's a sample;
 
