@@ -123,11 +123,11 @@ jobs:
 
       - name: Create Root Cert references in AppGw
         id: AppGwRootCert
-        run: sh scripts/agw-create-root-cert.sh
+        run: sh scripts/agw-create-root-cert.sh || { echo "AppGw Script Failed, retrying"; sh scripts/agw-create-root-cert.sh ; }
 
       - name: Create FrontEnd Cert references in AppGw
         if: inputs.FRONTENDCERTTYPE == 'appgw-selfsigned'
-        run: sh scripts/agw-create-ssl-cert.sh
+        run: sh scripts/agw-create-ssl-cert.sh || { echo "AppGw Script Failed, retrying"; sh scripts/agw-create-ssl-cert.sh ; }
 
       - name: Confirm certificates registered in AppGw
         run: |
