@@ -1,4 +1,5 @@
 #!/bin/bash
+echo "Installing $APPNAME from $APPURI using $CERTSOURCE $LEISSUER"
 
 KVNAMELOWER=$(echo $AKVNAME | tr '[:upper:]' '[:lower:]')
 DNSNAME=${APPNAME}.${DNSDOMAIN}
