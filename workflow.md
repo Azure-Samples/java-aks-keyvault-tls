@@ -14,7 +14,7 @@ on:
 
 jobs:
   azsamples-deploy-javaApp:
-    uses: azure-samples/java-aks-keyvault-tls/.github/workflows/deployapp.yml@gb-workflow
+    uses: azure-samples/java-aks-keyvault-tls/.github/workflows/deployapp.yml@1.0-preview
     with:
       RG: yourResourceGroup
       AKSNAME: yourAksClusterName
