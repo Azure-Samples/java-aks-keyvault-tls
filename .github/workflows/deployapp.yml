@@ -160,7 +160,7 @@ jobs:
           CERTMANAGERURI: "https://github.com/jetstack/cert-manager/releases/download/${{ inputs.CERTMANAGERVERSION }}/cert-manager.yaml"
           CERTMANAGERISSUERURI: "${{ inputs.HELMCERTMANAGERISSUERURI }}"
           EMAILAD: "${{ inputs.CERTMANAGEREMAIL }}"
-        run: sh scripts\certmanager-install.sh
+        run: sh scripts/certmanager-install.sh
 
       - name: Verify Cert Manager ClusterIssuer
         if: startsWith(inputs.FRONTENDCERTTYPE, 'certmanager' )
@@ -193,7 +193,7 @@ jobs:
           APPURI: "${{ inputs.HELMAPPURI }}"
           CERTSOURCE: "${{ steps.frontendCert.outputs.CERTSOURCE }}"
           LEISSUER: "${{ steps.frontendCert.outputs.LEISSUER }}"
-        run: sh scripts\jdkdemoapp-install.sh
+        run: sh scripts/jdkdemoapp-install.sh
 
       - name: Wait for External DNS config
         run: |
