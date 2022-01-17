@@ -46,7 +46,7 @@ on:
         required: false
         type: string
       HELMAPPURI:
-        default: "helm/openjdk-demo-3.1.0.tgz"
+        default: "helm/openjdk-demo-3.5.0.tgz"
         required: false
         type: string
       CERTMANAGERVERSION:
