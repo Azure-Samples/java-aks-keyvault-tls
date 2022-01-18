@@ -27,7 +27,6 @@ jobs:
       AGNAME: yourAppGatewayName
       APPNAME: openjdk-demo
       FRONTENDCERTTYPE: certmanager-staging
-      CERTMANAGEREMAIL: yourworkingemail@address.something
     secrets:
       AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
 ```
