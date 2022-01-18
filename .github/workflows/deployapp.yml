@@ -177,10 +177,8 @@ jobs:
           SECRETNAME: "${{ inputs.APPNAME }}-tls"
         run: |
           counter=1
-          while [ $counter -le 10 ]
+          while [ $counter -le 15 ]
           do
-            kubectl get po
-
             secret=$(kubectl get secret $SECRETNAME --ignore-not-found)
             kubectl get secret $SECRETNAME --ignore-not-found
 
