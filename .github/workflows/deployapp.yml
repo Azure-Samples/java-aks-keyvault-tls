@@ -198,6 +198,8 @@ jobs:
           then
             echo "CertManager ClusterIssuer has not created the certificate secret in a timely fashion, suggest you examine the logs"
             kubectl get pods
+            kubectl get po -l acme.cert-manager.io/http01-solver=true
+            kubectl logs -l acme.cert-manager.io/http01-solver=true
             exit 1
           fi
 
