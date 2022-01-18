@@ -5,6 +5,16 @@ It's written as a [GitHub Reusable Workflow](https://docs.github.com/en/actions/
 
 > The workflow is written to run on a hosted GitHub agent and leverage DockerHub for container image storage. If your environment does not allow hosted GitHub agents to communicate with the AKS endpoint, or if you have firewall controls or policies that prevent container images coming from DockerHub then you should follow the instructions in the [README.md](readme.md) where you can build the container and store in a private Azure Container Registry.
 
+## Prerequisites
+
+ExternalDNS is expected to be present in the cluster, and there are steps in the workflow to verify the changes to the Azure DNS Zone.
+
+For leveraging Lets Encrypt as the frontend certificate authority, CertManager is required to be present in the cluster alongside the Lets Encrypt issuer.
+
+To install these prerequisites easily, please refer to the [AKS Construction "Post Deploy"](https://github.com/Azure/Aks-Construction/blob/gb-certmanagerrefactor/.github/workflows/PostDeploy.yml) action/scripts.
+
+## Calling the workflow
+
 You can call the reusable workflow in this repository directly from your own GitHub repository.
 You will need to providing the correct parameters to allow the workflow to run. Here's a sample;
 
