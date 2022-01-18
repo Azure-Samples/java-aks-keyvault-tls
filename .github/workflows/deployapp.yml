@@ -37,24 +37,8 @@ on:
         #- certmanager-staging
         #- certmanager-production
         #- appgw-selfsigned
-      HELMCERTMANAGERISSUERURI:
-        default: "helm/Az-CertManagerIssuer-0.3.0.tgz"
-        required: false
-        type: string
-      HELMEXTERNALDNSURI:
-        default: "helm/externaldns-0.2.0.tgz"
-        required: false
-        type: string
       HELMAPPURI:
         default: "helm/openjdk-demo-3.5.0.tgz"
-        required: false
-        type: string
-      CERTMANAGERVERSION:
-        default: "v1.5.3"
-        required: false
-        type: string
-      CERTMANAGEREMAIL:
-        default: ""
         required: false
         type: string
       VERIFYURLTIMEOUTMINS:
@@ -108,7 +92,6 @@ jobs:
           echo "RG is ${{ inputs.RG }}"
           echo "AKS name is ${{ inputs.AKSNAME }}"
           echo "FrontendCert type is ${{ inputs.FRONTENDCERTTYPE }}"
-          echo "CertManager version is ${{ inputs.CERTMANAGERVERSION }}"
 
       - name: Azure Login
         uses: Azure/login@v1
@@ -153,45 +136,6 @@ jobs:
                 helm uninstall $APPNAME
                 sleep 1m
           fi
-
-      - name: Install Cert Manager
-        if: startsWith(inputs.FRONTENDCERTTYPE, 'certmanager' )
-        env:
-          CERTMANAGERURI: "https://github.com/jetstack/cert-manager/releases/download/${{ inputs.CERTMANAGERVERSION }}/cert-manager.yaml"
-          CERTMANAGERISSUERURI: "${{ inputs.HELMCERTMANAGERISSUERURI }}"
-          EMAILAD: "${{ inputs.CERTMANAGEREMAIL }}"
-        run: sh scripts/certmanager-install.sh
-
-      - name: Verify Cert Manager ClusterIssuer
-        if: startsWith(inputs.FRONTENDCERTTYPE, 'certmanager' )
-        run: |
-          case "${{ inputs.FRONTENDCERTTYPE }}" in
-             "certmanager-staging") CERTSOURCE="letsEncrypt"; LEISSUER="letsencrypt-staging" ;;
-             "certmanager-production") CERTSOURCE="letsEncrypt" LEISSUER="letsencrypt-production" ;;
-          esac
-
-          kubectl describe clusterissuer $LEISSUER
-
-      - name: Create azure-config secret and install externaldns
-        env:
-          EXTERNALDNSURI: "${{ inputs.HELMEXTERNALDNSURI }}"
-        run: sh scripts/externaldns-config-install.sh
-
-      - name: Set app frontend certificate parameters
-        id: frontendCert
-        run: |
-
-          case "${{ inputs.FRONTENDCERTTYPE }}" in
-              "appgw-selfsigned") CERTSOURCE="appGw"; LEISSUER="" ;;
-              "certmanager-staging") CERTSOURCE="letsEncrypt"; LEISSUER="letsencrypt-staging" ;;
-              "certmanager-production") CERTSOURCE="letsEncrypt" LEISSUER="letsencrypt-production" ;;
-          esac
-
-          echo "Using Certificate source $CERTSOURCE"
-          echo "::set-output name=CERTSOURCE::$CERTSOURCE"
-          
-          echo "Using Lets Encrypt Issuer $LEISSUER"
-          echo "::set-output name=LEISSUER::$LEISSUER"
 
       - name: Install the Java sample app
         env:
