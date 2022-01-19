@@ -179,8 +179,8 @@ jobs:
           counter=1
           while [ $counter -le 15 ]
           do
+            echo "Looking for secret $SECRETNAME"
             secret=$(kubectl get secret $SECRETNAME --ignore-not-found)
-            kubectl get secret $SECRETNAME --ignore-not-found
 
             if [ ! -z "$secret" ]
             then
@@ -194,7 +194,7 @@ jobs:
 
           if [ -z "$secret" ]
           then
-            echo "CertManager ClusterIssuer has not created the certificate secret in a timely fashion, suggest you examine the logs"
+            echo "CertManager ClusterIssuer has not created the certificate secret $SECRETNAME in a timely fashion, suggest you examine the logs"
             kubectl get pods
             kubectl get po -l acme.cert-manager.io/http01-solver=true
             kubectl logs -l acme.cert-manager.io/http01-solver=true
