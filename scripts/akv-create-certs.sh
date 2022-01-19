@@ -1,4 +1,6 @@
 #!/bin/bash
+set -e
+
 certnamebackend=$APPNAME
 certnamefrontend="$APPNAME-fe"
 

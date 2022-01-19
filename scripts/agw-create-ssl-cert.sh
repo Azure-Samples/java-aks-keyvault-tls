@@ -1,4 +1,6 @@
 #!/bin/bash
+set -e
+
 echo "getting id for ${CERTNAME}-fe";
 versionedSecretId=$(az keyvault certificate show -n ${CERTNAME}-fe --vault-name $AKVNAME --query "sid" -o tsv);
 unversionedSecretId=$(echo $versionedSecretId | cut -d'/' -f-5) # remove the version from the url;

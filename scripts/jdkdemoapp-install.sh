@@ -1,4 +1,6 @@
 #!/bin/bash
+set -e
+
 echo "Installing $APPNAME from $APPURI using $CERTSOURCE $LEISSUER"
 
 KVNAMELOWER=$(echo $AKVNAME | tr '[:upper:]' '[:lower:]')
