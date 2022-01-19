@@ -208,7 +208,7 @@ jobs:
 
           if [ -z "$secret" ]
           then
-            echo "CertManager ClusterIssuer has not created the certificate secret $SECRETNAME in a timely fashion, suggest you examine the logs"
+            echo "CertManager ClusterIssuer has not created the certificate secret $SECRETNAME in a timely fashion, suggest you examine the logs and double check the helm parameters given to the Java sample app"
             kubectl get pods -n $NAMESP
             kubectl get po -l acme.cert-manager.io/http01-solver=true -n $NAMESP
             kubectl logs -l acme.cert-manager.io/http01-solver=true -n $NAMESP
