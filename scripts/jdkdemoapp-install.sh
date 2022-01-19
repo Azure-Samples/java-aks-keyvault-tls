@@ -8,6 +8,7 @@ DNSNAME=${APPNAME}.${DNSDOMAIN}
 
 echo "Querying Azure CLI for tenant ID"
 KVTENANT=$(az account show --query tenantId -o tsv)
+echo "Tenant: $KVTENANT [${#KVTENANT}]"
 
 echo 'Get the identity created from the KeyVaultSecret Addon'
 CSISECRET_CLIENTID=$(az aks show -g $RG --name $AKSNAME --query addonProfiles.azureKeyvaultSecretsProvider.identity.clientId -o tsv)
