@@ -93,8 +93,6 @@ jobs:
           echo "RG is ${{ inputs.RG }}"
           echo "AKS name is ${{ inputs.AKSNAME }}"
           echo "FrontendCert type is ${{ inputs.FRONTENDCERTTYPE }}"
-          #echo "GitHub ref is ${{ fromJSON(github.event) }}"
-          echo "Actor is: ${{github.actor}}"
           echo "EventTrigger name is ${{github.event_name}}"
           echo "Head Ref is ${{github.head_ref}}"
           echo "Base Ref is ${{github.base_ref}}"
