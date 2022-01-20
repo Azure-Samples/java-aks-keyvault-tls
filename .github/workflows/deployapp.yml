@@ -87,7 +87,7 @@ jobs:
       #- uses: actions/checkout@v2  #Checks out the files from the Calling workflows repository, cannot use it. We need to be more specific in our repo checkout
 
       - uses: actions/checkout@v2
-        name: Checkout repo for dependant scripts/
+        name: Checkout java-aks-keyvault-tls repo for scripts/
         with:
           repository: azure-samples/java-aks-keyvault-tls
           ref: "${{ inputs.REPOREF }}"
