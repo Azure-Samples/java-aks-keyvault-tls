@@ -11,7 +11,7 @@ ExternalDNS is expected to be present in the cluster, and there are steps in the
 
 For leveraging Lets Encrypt as the frontend certificate authority, CertManager is required to be present in the cluster alongside the Lets Encrypt issuer.
 
-To install these prerequisites easily, please refer to the [AKS Construction "Post Deploy"](https://github.com/Azure/Aks-Construction/blob/gb-certmanagerrefactor/.github/workflows/PostDeploy.yml) action/scripts.
+To install these prerequisites easily, please refer to the [AKS Construction "Post Deploy"](https://github.com/Azure/Aks-Construction/blob/main/.github/workflows/PostDeploy.yml) action/scripts.
 
 ## Calling the workflow
 
@@ -39,7 +39,8 @@ jobs:
       FRONTENDCERTTYPE: certmanager-staging
     secrets:
       AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
+
 ```
 
 You need to provide Azure Credentials in order for the appropriate Azure resources to be configured. The format of these secrets is as explained [here](https://github.com/Azure/login#configure-a-service-principal-with-a-secret).
-Although it may appear you are passing secrets, the way GitHub deals with secrets is handled securely. Secrets and parameters are not sent to this repo, simply the reusable workflow file is downloaded to your GitHub runner where the activity takes place.
+Although it may appear you are passing secrets, the way GitHub deals with secrets is handled securely. Secrets and parameters are not sent to this repo, simply the reusable workflow file is downloaded to your GitHub runner where all the activity takes place.
