@@ -89,14 +89,16 @@ jobs:
 
       - name: Job parameter inspection
         run: |
-        
           echo "RG is ${{ inputs.RG }}"
           echo "AKS name is ${{ inputs.AKSNAME }}"
           echo "FrontendCert type is ${{ inputs.FRONTENDCERTTYPE }}"
           echo "EventTrigger name is ${{github.event_name}}"
-          echo "Head Ref is ${{github.head_ref}}"
-          echo "Base Ref is ${{github.base_ref}}"
-          echo 'obj is ${{toJson(github.event)}}'
+          
+      - name: Event context
+        env:
+          EVENT_CONTEXT: ${{ toJSON(github.event) }}
+        run: |
+          echo $EVENT_CONTEXT
           
       - name: Azure Login
         uses: Azure/login@v1
