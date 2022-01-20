@@ -92,7 +92,7 @@ jobs:
           echo "RG is ${{ inputs.RG }}"
           echo "AKS name is ${{ inputs.AKSNAME }}"
           echo "FrontendCert type is ${{ inputs.FRONTENDCERTTYPE }}"
-          echo "GitHub ref is ${{ toJSON(github) }}"
+          echo "GitHub ref is ${{ fromJSON(github) }}"
 
       - name: Azure Login
         uses: Azure/login@v1
