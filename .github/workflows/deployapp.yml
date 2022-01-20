@@ -3,6 +3,11 @@
 on:
   workflow_call:
     inputs:
+      REPOREF:
+        required: false
+        type: string
+        default: "0.9-preview"
+        description: 'The tag in Azure-Samples/java-aks-keyvault-tls repo to use for scripts'
       RG:
         required: true
         type: string
@@ -85,7 +90,7 @@ jobs:
         name: Checkout repo for dependant scripts/
         with:
           repository: azure-samples/java-aks-keyvault-tls
-          ref: 'gb-workflow' #TODO:change this to a specific release tag before PR
+          ref: "${{ inputs.REPOREF }}"
 
       - name: Job parameter inspection
         run: |
