@@ -96,7 +96,7 @@ jobs:
           echo "EventTrigger name is ${{github.event_name}}"
           echo "Head Ref is ${{github.head_ref}}"
           echo "Base Ref is ${{github.base_ref}}"
-          echo "Sender obj is ${{toJson(github.event.sender)}}"
+          echo "obj is ${{toJson(github.event)}}"
           
       - name: Azure Login
         uses: Azure/login@v1
