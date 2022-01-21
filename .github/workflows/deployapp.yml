@@ -1,0 +1,245 @@
+# This is a 'REUSABLE WORKFLOW' which is called from another workflow to install the application
+
+on:
+  workflow_call:
+    inputs:
+      REPOREF:
+        required: false
+        type: string
+        default: "0.9-preview"
+        description: 'The tag in Azure-Samples/java-aks-keyvault-tls repo to use for scripts'
+      RG:
+        required: true
+        type: string
+      AKSNAME:
+        required: true
+        type: string
+      DNSDOMAIN:
+        required: true
+        type: string
+      DNSRG:
+        required: true
+        type: string
+      DNSRECORDNAME:
+        required: true
+        type: string
+      AKVNAME:
+        required: true
+        type: string
+      AGNAME:
+        required: true
+        type: string
+      APPNAME:
+        default: "openjdk-kvssl"
+        required: true
+        type: string
+      FRONTENDCERTTYPE:
+        default: "certmanager-staging"
+        required: false
+        type: string
+        #type: choice
+        ##options:
+        #- certmanager-staging
+        #- certmanager-production
+        #- appgw-selfsigned
+      HELMAPPURI:
+        default: "helm/openjdk-demo-3.5.0.tgz"
+        required: false
+        type: string
+      VERIFYURLTIMEOUTMINS:
+        default: 3
+        required: false
+        type: number
+      FORCEHELMCLEANINSTALL:
+        description: 'If App is already installed, remove explicitly before install'
+        type: boolean
+        default: false
+        required: false
+      UNINSTALLAFTERVERIFY:
+        description: 'Uninstall app after tests  [yes|no]'
+        type: boolean
+        default: false
+        required: false
+    secrets:
+      AZURE_CREDENTIALS:
+        required: true
+
+jobs:
+  App_Create:
+    runs-on: ubuntu-latest
+    concurrency: "Ag-${{ inputs.AGNAME}}" #AppGateway doesn't like concurrent updates
+    env: #We create the environment variables here instead of at the step level for clarity and to ensure consistency with the WizardUI
+      APPNAME: "${{ inputs.APPNAME }}"
+      AKVNAME: "${{ inputs.AKVNAME }}"
+      CERTNAME: "${{ inputs.APPNAME }}"
+      RG: "${{ inputs.RG }}"
+      KVNAME: "${{ inputs.AKVNAME }}"
+      AGNAME: "${{ inputs.AGNAME }}"
+      AKSNAME: "${{ inputs.AKSNAME }}"
+      DNSDOMAIN: "${{ inputs.DNSDOMAIN }}"
+      DNSRG: "${{ inputs.DNSRG }}"
+      DNSRECORDNAME: "${{ inputs.DNSRECORDNAME }}"
+      NAMESP: "default"
+      APPURL: "https://${{ inputs.APPNAME }}.${{ inputs.DNSDOMAIN }}"
+      kubeloginversion: 'v0.0.10'
+
+    steps:
+      #- uses: actions/checkout@v2  #Checks out the files from the Calling workflows repository, cannot use it. We need to be more specific in our repo checkout
+
+      - uses: actions/checkout@v2
+        name: Checkout java-aks-keyvault-tls repo for scripts/
+        with:
+          repository: azure-samples/java-aks-keyvault-tls
+          ref: "${{ inputs.REPOREF }}"
+
+      - name: Job parameter inspection
+        run: |
+          echo "RG is ${{ inputs.RG }}"
+          echo "AKS name is ${{ inputs.AKSNAME }}"
+          echo "FrontendCert type is ${{ inputs.FRONTENDCERTTYPE }}"
+          echo "EventTrigger name is ${{github.event_name}}"
+          
+      - name: Azure Login
+        uses: Azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          enable-AzPSSession: false
+          environment: azurecloud
+          allow-no-subscriptions: false
+
+      - name: Create self signed certs in Key Vault
+        run: sh scripts/akv-create-certs.sh
+
+      - name: Create Root Cert references in AppGw
+        id: AppGwRootCert
+        run: sh scripts/agw-create-root-cert.sh || { echo "AppGw Script Failed, retrying"; sh scripts/agw-create-root-cert.sh ; }
+
+      - name: Create FrontEnd Cert references in AppGw
+        if: inputs.FRONTENDCERTTYPE == 'appgw-selfsigned'
+        run: sh scripts/agw-create-ssl-cert.sh || { echo "AppGw Script Failed, retrying"; sh scripts/agw-create-ssl-cert.sh ; }
+
+      - name: Confirm certificates registered in AppGw
+        run: |
+          az network application-gateway ssl-cert list -g $RG --gateway-name $AGNAME --query "[].name"
+          az network application-gateway root-cert list -g $RG --gateway-name $AGNAME --query "[].name"
+
+      - name: AKS Connect
+        run: sh scripts/aks-connect.sh
+
+      - name: Observe Existing DNSConfig
+        run: az network dns record-set list -g $DNSRG -z $DNSDOMAIN --query "[?name=='$DNSRECORDNAME'][{type:type,fqdn:fqdn,aRecords:aRecords,txtRecords:txtRecords}]"
+
+      - name: Force helm uninstall of existing application
+        if: inputs.FORCEHELMCLEANINSTALL == true
+        run: |
+          APPINSTALLED=$(helm list --filter ^$APPNAME$ --short)
+          if [ -z "$APPINSTALLED" ]
+          then
+                echo "App not installed"
+          else
+                echo "App already installed, forcing uninstall"
+                helm list --short
+                helm uninstall $APPNAME
+                sleep 1m
+          fi
+
+      - name: Set app frontend certificate parameters
+        id: frontendCert
+        run: |
+          case "${{ inputs.FRONTENDCERTTYPE }}" in
+              "appgw-selfsigned") CERTSOURCE="appGw"; LEISSUER="" ;;
+              "certmanager-staging") CERTSOURCE="letsEncrypt"; LEISSUER="letsencrypt-staging" ;;
+              "certmanager-production") CERTSOURCE="letsEncrypt" LEISSUER="letsencrypt-production" ;;
+          esac
+          echo "Using Certificate source $CERTSOURCE"
+          echo "::set-output name=CERTSOURCE::$CERTSOURCE"
+
+          echo "Using Lets Encrypt Issuer $LEISSUER"
+          echo "::set-output name=LEISSUER::$LEISSUER"
+
+      - name: Install the Java sample app
+        env:
+          APPURI: "${{ inputs.HELMAPPURI }}"
+          CERTSOURCE: "${{ steps.frontendCert.outputs.CERTSOURCE }}"
+          LEISSUER: "${{ steps.frontendCert.outputs.LEISSUER }}"
+        run: sh scripts/jdkdemoapp-install.sh
+
+      - name: Wait for External DNS config
+        run: |
+          counter=1
+          while [ $counter -le 10 ]
+          do
+            dnsrecords=$(az network dns record-set list -g $DNSRG -z $DNSDOMAIN --query "[?name=='$DNSRECORDNAME'][{type:type,fqdn:fqdn,aRecords:aRecords,txtRecords:txtRecords}]")
+
+            if [ "$dnsrecords" != "[]" ]
+            then
+                  echo "DNS Records have been created [$counter] [$(date +"%T")]"
+                  echo $dnsrecords
+                  break 2
+            fi
+
+            echo "ExternalDNS has not created Azure DNS Records yet [$counter] [$(date +"%T")]"
+
+            ((counter++))
+            sleep 10s
+          done
+
+          if [ "$dnsrecords" == "[]" ]
+          then
+            echo "ExternalDNS has not created Azure DNS Records in a timely fashion, suggest you examine the ExternalDNS pod logs with; kubectl logs -l app=externaldns"
+            kubectl logs -l app=externaldns
+            exit 1
+          fi
+
+      - name: Wait for Cert Manager to issue certificate
+        if: startsWith(inputs.FRONTENDCERTTYPE, 'certmanager' )
+        env:
+          SECRETNAME: "${{ inputs.APPNAME }}-tls"
+        run: |
+          counter=1
+          while [ $counter -le 15 ]
+          do
+            echo "Looking for secret $SECRETNAME [$counter] [$(date +"%T")]"
+            secret=$(kubectl get secret $SECRETNAME --ignore-not-found)
+
+            if [ ! -z "$secret" ]
+            then
+                  echo "Secret $SECRETNAME has been created"
+                  break 2
+            fi
+
+            ((counter++))
+            sleep 10s
+          done
+
+          if [ -z "$secret" ]
+          then
+            echo "CertManager ClusterIssuer has not created the certificate secret $SECRETNAME in a timely fashion, suggest you examine the logs and double check the helm parameters given to the Java sample app"
+            kubectl get pods -n $NAMESP
+            kubectl get po -l acme.cert-manager.io/http01-solver=true -n $NAMESP
+            kubectl logs -l acme.cert-manager.io/http01-solver=true -n $NAMESP
+            kubectl get events -n cert-manager
+            kubectl get ing -n $NAMESP
+            exit 1
+          fi
+
+      - name: Verify Java App is reachable
+        timeout-minutes: 5
+        run: |
+          sleep 30s
+          echo "curl $APPURL [$(date +"%T")]"
+          curlcommand="curl --connect-timeout 2 --retry 25 --retry-delay 20 --no-keepalive --no-tcp-nodelay -X GET --insecure --write-out %{http_code} --silent --fail --output /dev/null $APPURL -v --trace-time"
+          echo "Running curl command $curlcommand with retry"
+          respcode=$($curlcommand || sleep 1m; $curlcommand)
+
+          echo $respcode
+
+          curl --insecure $APPURL
+
+      - name: Verify Frontend Certificate
+        run: |
+          curl --insecure -vvI $APPURL 2>&1 | awk 'BEGIN { cert=0 } /^\* SSL connection/ { cert=1 } /^\*/ { if (cert) print }'
+
+      - name: Cleanup app
+        if: inputs.UNINSTALLAFTERVERIFY
+        run: helm uninstall $APPNAME
