@@ -19,7 +19,7 @@ csisecrets:
   clientId: ""
 
 image:
-  repository: gordonbmsft/openjdk-demo
+  repository: ghcr.io/gordonby/openjdk-demo
   pullPolicy: Always
   tag: "" #image tag should be set in Chart.yaml - but where it's a strange tag, just override here
 
