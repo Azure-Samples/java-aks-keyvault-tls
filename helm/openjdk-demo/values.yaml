@@ -26,4 +26,4 @@ image:
 letsEncrypt:
   issuer: "letsencrypt-staging"
   challengeType: "http01"
-  secretname: "tls-secret"
+  secretname: "openjdk-tls"
