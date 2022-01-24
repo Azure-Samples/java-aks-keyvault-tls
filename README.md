@@ -116,7 +116,7 @@ az network application-gateway root-cert create \
 
 ```
 ### Create a deployable jar file
-SSL_ENABLED="false" mvn package
+SSL_ENABLED="false" ./mvnw package
 
 ### Build the image locally
 docker build -t ${ACRNAME}.azurecr.io/openjdk-demo:0.0.1 .
