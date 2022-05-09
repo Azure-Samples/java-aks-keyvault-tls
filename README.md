@@ -72,7 +72,7 @@ export CSISECRET_CLIENTID=$(az aks show  --resource-group $AKSRG --name $AKSNAME
 
 
 echo "
-apiVersion: secrets-store.csi.x-k8s.io/v1alpha1
+apiVersion: secrets-store.csi.x-k8s.io/v1
 kind: SecretProviderClass
 metadata:
   name: azure-${KVNAME}
