@@ -6,7 +6,7 @@ on:
       REPOREF:
         required: false
         type: string
-        default: "0.9-preview"
+        default: "0.9.1-preview"
         description: 'The tag in Azure-Samples/java-aks-keyvault-tls repo to use for scripts'
       RG:
         required: true
@@ -43,7 +43,7 @@ on:
         #- certmanager-production
         #- appgw-selfsigned
       HELMAPPURI:
-        default: "helm/openjdk-demo-3.5.0.tgz"
+        default: "helm/openjdk-demo-3.6.0.tgz"
         required: false
         type: string
       VERIFYURLTIMEOUTMINS:
