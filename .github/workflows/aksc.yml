@@ -8,9 +8,9 @@ jobs:
     uses: Azure/AKS-Construction/.github/workflows/AKSC_Deploy.yml@main
     with:
       templateVersion: 0.8.7
-      rg: az-k8s-5jtu-rg
-      resourceName: az-k8s-5jtu
-      templateParams: resourceName=az-k8s-5jtu agentCount=2 upgradeChannel=stable JustUseSystemPool=true custom_vnet=true CreateNetworkSecurityGroups=true bastion=true enable_aad=true AksDisableLocalAccounts=true enableAzureRBAC=true adminPrincipalId=_USER_OBJECT_ID_ registries_sku=Premium acrPushRolePrincipalId=_USER_OBJECT_ID_ imageNames=["k8s.gcr.io/external-dns/external-dns:v0.11.0"] azureFirewalls=true certManagerFW=true privateLinks=true kvIPAllowlist=["5.67.72.204/32"] omsagent=true retentionInDays=30 networkPolicy=azure azurepolicy=audit enablePrivateCluster=true dnsZoneId=/subscriptions/95efa97a-9b5d-4f74-9f75-a3396e23344d/resourceGroups/kh-common/providers/Microsoft.Network/dnszones/labhome.biz ingressApplicationGateway=true appGWcount=0 appGWsku=WAF_v2 appGWmaxCount=10 appgwKVIntegration=true azureKeyvaultSecretsProvider=true createKV=true kvOfficerRolePrincipalId=_USER_OBJECT_ID_ acrPrivatePool=true
+      rg: az-k8s-jyo9-rg
+      resourceName: az-k8s-jyo9
+      templateParams: resourceName=az-k8s-jyo9 agentCount=2 upgradeChannel=stable JustUseSystemPool=true custom_vnet=true CreateNetworkSecurityGroups=true bastion=true enable_aad=true AksDisableLocalAccounts=true enableAzureRBAC=true adminPrincipalId=_USER_OBJECT_ID_ registries_sku=Premium acrPushRolePrincipalId=_USER_OBJECT_ID_ imageNames=["k8s.gcr.io/external-dns/external-dns:v0.11.0"] azureFirewalls=true certManagerFW=true privateLinks=true kvIPAllowlist=["5.67.72.204/32"] omsagent=true retentionInDays=30 networkPolicy=azure azurepolicy=audit enablePrivateCluster=true dnsZoneId=/subscriptions/95efa97a-9b5d-4f74-9f75-a3396e23344d/resourceGroups/kh-common/providers/Microsoft.Network/dnszones/labhome.biz ingressApplicationGateway=true appGWcount=0 appGWsku=WAF_v2 appGWmaxCount=10 appgwKVIntegration=true azureKeyvaultSecretsProvider=true createKV=true kvOfficerRolePrincipalId=_USER_OBJECT_ID_ acrPrivatePool=true
       postScriptInvokeCommand: true
       postScriptParams: "dnsZoneId=/subscriptions/95efa97a-9b5d-4f74-9f75-a3396e23344d/resourceGroups/kh-common/providers/Microsoft.Network/dnszones/labhome.biz,ingress=appgw,certEmail=kforce1234@gmail.com"
     secrets:
