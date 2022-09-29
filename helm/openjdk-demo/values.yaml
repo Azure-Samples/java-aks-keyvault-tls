@@ -3,8 +3,9 @@ replicaCount: 1
 nameOverride: "openjdk-demo"
 
 dnsname: openjdk-demo.local
+dnsttl: "60"
 
-ingressType: "appgw"
+ingressType: "azure-application-gateway"
 
 frontendCertificateSource: "letsEncrypt" #letsEncrypt|appGw
 

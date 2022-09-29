@@ -22,8 +22,9 @@ metadata:
     kubernetes.io/tls-acme: "true"
     cert-manager.io/acme-challenge-type: {{ .Values.letsEncrypt.challengeType }}
     {{ end }}
+    external-dns.alpha.kubernetes.io/ttl: "{{ .Values.dnsttl }}"
 spec:
-  {{if eq .Values.ingressType "appgw"}}
+  {{if eq .Values.ingressType "azure-application-gateway"}}
   ingressClassName: azure-application-gateway
   {{ else }}
   ingressClassName: {{ .Values.ingressType }}

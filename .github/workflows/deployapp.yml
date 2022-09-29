@@ -43,7 +43,7 @@ on:
         #- certmanager-production
         #- appgw-selfsigned
       HELMAPPURI:
-        default: "helm/openjdk-demo-3.6.0.tgz"
+        default: "helm/openjdk-demo-3.6.2.tgz"
         required: false
         type: string
       VERIFYURLTIMEOUTMINS:
