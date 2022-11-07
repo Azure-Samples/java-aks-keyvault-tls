@@ -61,7 +61,11 @@ on:
         default: false
         required: false
     secrets:
-      AZURE_CREDENTIALS:
+      AZURE_CLIENT_ID:
+        required: true
+      AZURE_TENANT_ID:
+        required: true
+      AZURE_SUBSCRIPTION_ID:
         required: true
 
 jobs:
@@ -81,12 +85,10 @@ jobs:
       DNSRECORDNAME: "${{ inputs.DNSRECORDNAME }}"
       NAMESP: "default"
       APPURL: "https://${{ inputs.APPNAME }}.${{ inputs.DNSDOMAIN }}"
-      kubeloginversion: 'v0.0.10'
+      kubeloginversion: 'v0.0.20'
 
     steps:
-      #- uses: actions/checkout@v2  #Checks out the files from the Calling workflows repository, cannot use it. We need to be more specific in our repo checkout
-
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v2.5.0
         name: Checkout java-aks-keyvault-tls repo for scripts/
         with:
           repository: azure-samples/java-aks-keyvault-tls
@@ -100,9 +102,11 @@ jobs:
           echo "EventTrigger name is ${{github.event_name}}"
           
       - name: Azure Login
-        uses: Azure/login@v1
+        uses: Azure/login@v1.4.6
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           enable-AzPSSession: false
           environment: azurecloud
           allow-no-subscriptions: false
