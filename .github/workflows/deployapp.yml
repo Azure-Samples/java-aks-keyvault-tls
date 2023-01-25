@@ -3,7 +3,7 @@
 on:
   workflow_call:
     inputs:
-      Environment:
+      ENVIRONMENT:
         required: false
         type: string
       REPOREF:
