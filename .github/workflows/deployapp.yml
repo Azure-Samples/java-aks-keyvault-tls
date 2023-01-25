@@ -3,6 +3,9 @@
 on:
   workflow_call:
     inputs:
+      Environment:
+        required: false
+        type: string
       REPOREF:
         required: false
         type: string
@@ -71,6 +74,7 @@ on:
 jobs:
   App_Create:
     runs-on: ubuntu-latest
+    environment: ${{ inputs.Environment }}
     concurrency: "Ag-${{ inputs.AGNAME}}" #AppGateway doesn't like concurrent updates
     env: #We create the environment variables here instead of at the step level for clarity and to ensure consistency with the WizardUI
       APPNAME: "${{ inputs.APPNAME }}"
