@@ -6,7 +6,7 @@ on:
       REPOREF:
         required: false
         type: string
-        default: "0.9.2"
+        default: "0.9.5"
         description: 'The tag in Azure-Samples/java-aks-keyvault-tls repo to use for scripts'
       RG:
         required: true
@@ -81,12 +81,12 @@ jobs:
       DNSRECORDNAME: "${{ inputs.DNSRECORDNAME }}"
       NAMESP: "default"
       APPURL: "https://${{ inputs.APPNAME }}.${{ inputs.DNSDOMAIN }}"
-      kubeloginversion: 'v0.0.10'
+      kubeloginversion: 'v0.0.28'
 
     steps:
       #- uses: actions/checkout@v2  #Checks out the files from the Calling workflows repository, cannot use it. We need to be more specific in our repo checkout
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3.5.0
         name: Checkout java-aks-keyvault-tls repo for scripts/
         with:
           repository: azure-samples/java-aks-keyvault-tls
@@ -100,7 +100,7 @@ jobs:
           echo "EventTrigger name is ${{github.event_name}}"
           
       - name: Azure Login
-        uses: Azure/login@v1
+        uses: Azure/login@v1.4.6
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
           enable-AzPSSession: false
