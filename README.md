@@ -21,7 +21,7 @@ As an alternative to the manual instructions detailed in this repo, you can call
 
 ## Prerequisites
 
-Use the [AKS helper](https://azure.github.io/Aks-Construction) to provision your cluster, and configure the helper as follows:
+Use the [AKS helper](https://azure.github.io/AKS-Construction) to provision your cluster, and configure the helper as follows:
 
 Keep the default options for:
 
