@@ -1,4 +1,4 @@
-FROM openjdk:11 as build
+FROM mcr.microsoft.com/openjdk/jdk:11-mariner as build
 
 WORKDIR /workspace/app
 
@@ -9,7 +9,7 @@ COPY src src
 
 RUN SSL_ENABLED="false" ./mvnw package
 
-FROM openjdk:11
+FROM mcr.microsoft.com/openjdk/jdk:11-mariner
 
 ARG WAR_FILE=/workspace/app/target/*.jar
 
